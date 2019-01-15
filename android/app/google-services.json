@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "879551369210",
+    "firebase_url": "https://new-summa-logos.firebaseio.com",
+    "project_id": "new-summa-logos",
+    "storage_bucket": "new-summa-logos.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:879551369210:android:8ec91e4081043484",
+        "android_client_info": {
+          "package_name": "com.webster.summalogos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "879551369210-kt4eoeancv2cc5tcdu50r2t0id5m0i3a.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "879551369210-kt4eoeancv2cc5tcdu50r2t0id5m0i3a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZaruFiIrhvh8gQr6xHU1iB5Edmmwt5Sg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
