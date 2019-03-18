@@ -1,32 +1,33 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
-import 'dart:ui' as ui;
 
 import 'package:device_info/device_info.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+//import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:progress_hud/progress_hud.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import './home_page.dart';
 import '../database/database_helper.dart';
 import '../model/devotion.dart';
 import '../model/user.dart';
 import '../presenter/user_presenter.dart';
 import '../util/constant.dart';
-import '../util/facebook.dart' as fb;
-import '../util/auth.dart';
-import '../database/database_helper.dart';
-
-import './home_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 
 const String appId = "785432221652641";
 const String appSecret = "df1fd6022bc9972a622dc4a3e80f236d";
+
+GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: <String>[
+    'email',
+    'https://www.googleapis.com/auth/contacts.readonly',
+  ],
+);
 
 class LandingPage extends StatefulWidget {
   static const String routeName = '/landing';
@@ -35,90 +36,69 @@ class LandingPage extends StatefulWidget {
   _LandingPageState createState() => _LandingPageState();
 }
 
-class _LandingPageState extends State<LandingPage> implements UserContract,
-    AuthStateListener
-     {
+class _LandingPageState extends State<LandingPage> implements UserContract {
+  GoogleSignInAccount _currentUser;
   SharedPreferences prefs;
   static const platform = const MethodChannel('AndroidChannel');
   var db = new DatabaseHelper();
-
 
   UserPresenter _presenter;
   UserProvider _userProvider;
   List<Devotion> _devotions;
   User _user;
-  fb.Token token;
-  fb.FacebookGraph graph;
-  fb.PublicProfile profile;
   String _platform;
   bool isLogin = false;
-  final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
-
+//  final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
 
   static final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
   Map<String, dynamic> _deviceData = <String, dynamic>{};
 
-  static final FacebookLogin facebookLogin = new FacebookLogin();
-
   String _message = 'Log in/out by pressing the buttons below.';
 
-  Future<Null> _fbLogin() async {
-    final FacebookLoginResult result =
-    await facebookLogin.logInWithReadPermissions(['email']);
-
-    switch (result.status) {
-      case FacebookLoginStatus.loggedIn:
-        final FacebookAccessToken accessToken = result.accessToken;
-        var graphResponse = await http.get(
-            'https://graph.facebook.com/v3.0/me?fields='
-                'name,first_name,last_name,gender,email&access_token=${accessToken
-                .token}');
-        var profile = json.decode(graphResponse.body);
-        _initFacebookUser(profile);
-        print(_user.toString());
-        _presenter.login(_user);
-//        _summaLogosLogin();
-        break;
-      case FacebookLoginStatus.cancelledByUser:
-        _showMessage('Login cancelled by the user.');
-        break;
-      case FacebookLoginStatus.error:
-        _showMessage('Something went wrong with the login process.\n'
-            'Here\'s the error Facebook gave us: ${result.errorMessage}');
-        break;
-    }
-
-    Navigator.pop(context);
-  }
+//  Future<Null> _fbLogin() async {
+//    final FacebookLoginResult result =
+//        await facebookLogin.logInWithReadPermissions(['email']);
+//
+//    switch (result.status) {
+//      case FacebookLoginStatus.loggedIn:
+//        final FacebookAccessToken accessToken = result.accessToken;
+//        var graphResponse = await http.get(
+//            'https://graph.facebook.com/v3.0/me?fields='
+//            'name,first_name,last_name,gender,email&access_token=${accessToken.token}');
+//        var profile = json.decode(graphResponse.body);
+//        _initFacebookUser(profile);
+//        _presenter.login(_user);
+////        _summaLogosLogin();
+//        break;
+//      case FacebookLoginStatus.cancelledByUser:
+//        _showMessage('Login cancelled by the user.');
+//        break;
+//      case FacebookLoginStatus.error:
+//        _showMessage('Something went wrong with the login process.\n'
+//            'Here\'s the error Facebook gave us: ${result.errorMessage}');
+//        break;
+//    }
+//
+//    Navigator.pop(context);
+//  }
 
   _initFacebookUser(profile) {
-    _user = new User(
-        0,
-        profile['name'],
-        profile['email'],
-        "",
-        profile['id'],
-        "",
-        "",
-        _platform,
-        "",
-        _deviceData['model'],
-        "1.0",
-        "",
-        "",
-        "",
-        null);
+    _user = new User(0, profile['name'], profile['email'], "", profile['id'],
+        "", "", _platform, "", _deviceData['model'], "1.0", "", "", "", null);
+  }
+
+  _initGoogleUser() {
+    _user = new User(0, _currentUser.displayName, _currentUser.email, "", _currentUser.id,
+        "", "", _platform, "", _deviceData['model'], "1.0", "", "", "", null);
   }
 
   Future<Null> _summaLogosLogin() async {
-    print(_user.toString());
     var res = await http.post(Constant.USER_API,
         headers: {"Content-Type": "application/json"},
         body: _user.toString(),
         encoding: Encoding.getByName("utf-8"));
 
     if (res.body != null) {}
-    print(res.body.toString());
   }
 
   Future<Null> _initPlatformState() async {
@@ -199,11 +179,9 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
     try {
       final int result = await platform.invokeMethod('getBatteryLevel');
       batteryLevel = 'Battery level at $result % .';
-      print("batteryLevel ${batteryLevel}");
       Navigator.pop(context);
     } on PlatformException catch (e) {
       batteryLevel = "Failed to get battery level: '${e.message}'.";
-      print("failed");
     }
 
     setState(() {
@@ -213,25 +191,17 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
 
   void _showMessage(String message) {
     setState(() {
-      print(message);
       _message = message;
     });
   }
 
   Future<Null> _logOut() async {
-    await facebookLogin.logOut();
+//    await facebookLogin.logOut();
     _showMessage('Logged out.');
-  }
-
-  _initUser() {
-//    _user = new User.fromMap(map)
-//    _user.fullName = "a";
-//    print(_user.fullName);
   }
 
   _LandingPageState() {
     _presenter = new UserPresenter(this);
-    _initUser();
   }
 
   _setLoginState() async {
@@ -246,7 +216,7 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
   }
 
   Widget TransparentButtonWithImage(String text, String imagePath, Color color,
-      Color textColor) {
+      Color textColor, String type) {
     return new Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.max,
@@ -256,12 +226,15 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
           onTap: () {
 //            _getBatteryLevel();
 //            _presenter.fetchUser(_user);
-
             showDialog(
               context: context,
               builder: (_) => CupertinoActivityIndicator(),
             );
-            _fbLogin();
+            if (type == 'Facebook') {
+//              _fbLogin();
+            } else {
+              _handleSignIn();
+            }
           },
           child: new Container(
             height: 40.0,
@@ -304,45 +277,42 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
     );
   }
 
-  _initFirebaseMessaging() {
-    _firebaseMessaging.configure(
-      onMessage: (Map<String, dynamic> message) {
-        print("NEH " + message.toString());
-
-//        _showItemDialog(message);
-      },
-      onLaunch: (Map<String, dynamic> message) {
-        print("onLaunch: ${message['notification']}");
-
-        setState(() {});
-//        _navigateToItemDetail(message);
-      },
-      onResume: (Map<String, dynamic> message) {
-        print("onResume: $message");
-//        _navigateToItemDetail(message);
-      },
-    );
-    _firebaseMessaging.requestNotificationPermissions(
-        const IosNotificationSettings(sound: true, badge: true, alert: true));
-    _firebaseMessaging.onIosSettingsRegistered
-        .listen((IosNotificationSettings settings) {
-      print("Settings registered: $settings");
-    });
-    _firebaseMessaging.getToken().then((String token) {
-      assert(token != null);
-      setState(() {
-//        _homeScreenText = "Push Messaging token: $token";
-      });
-      print('TOKEN : $token');
-//      print(_homeScreenText);
-    });
-  }
+//  _initFirebaseMessaging() {
+//    _firebaseMessaging.configure(
+//      onMessage: (Map<String, dynamic> message) {
+//      },
+//      onLaunch: (Map<String, dynamic> message) {
+//        print("onLaunch: ${message['notification']}");
+//
+//        setState(() {});
+////        _navigateToItemDetail(message);
+//      },
+//      onResume: (Map<String, dynamic> message) {
+//        print("onResume: $message");
+////        _navigateToItemDetail(message);
+//      },
+//    );
+//    _firebaseMessaging.requestNotificationPermissions(
+//        const IosNotificationSettings(sound: true, badge: true, alert: true));
+//    _firebaseMessaging.onIosSettingsRegistered
+//        .listen((IosNotificationSettings settings) {
+//      print("Settings registered: $settings");
+//    });
+//    _firebaseMessaging.getToken().then((String token) {
+//      assert(token != null);
+//      setState(() {
+////        _homeScreenText = "Push Messaging token: $token";
+//      });
+//      print('TOKEN : $token');
+////      print(_homeScreenText);
+//    });
+//  }
 
   Future<User> _checkIsLogin() async {
     var isLogin = await _isLogin();
     if (isLogin) {
       var users = await db.getAllUsers();
-     return User.fromMap(users[0]);
+      return User.fromMap(users[0]);
     }
     return null;
   }
@@ -358,8 +328,18 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
 
   @override
   void initState() {
-    _initFirebaseMessaging();
+//    _initFirebaseMessaging();
     _initPlatformState();
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
+      setState(() {
+        _currentUser = account;
+      });
+      if (_currentUser != null) {
+        _initGoogleUser();
+        _presenter.login(_user);
+      }
+    });
+    _googleSignIn.signInSilently();
 //   _checkIsLogin().then((user) {
 //     _getDevotions().then((devotions) {
 //       Navigator.push(context, MaterialPageRoute(
@@ -369,37 +349,41 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
     super.initState();
   }
 
-  @override
-  void onComplete(List<Devotion> devotions, int userId) async {
+  Future<void> _handleSignIn() async {
+    try {
+      await _googleSignIn.signIn();
+    } catch (error) {
+    }
+  }
+
+  _goToHomePage(List<Devotion> devotions, int userId) async {
+    showDialog(
+      context: context,
+      builder: (_) => CupertinoActivityIndicator(),
+    );
+    await db.deleteAllDevotions();
     _user.id = userId;
     await db.upsertUser(_user);
-    for (Devotion dev in devotions)
-      await db.saveDevotionList(dev);
+    for (Devotion dev in devotions) await db.saveDevotionList(dev);
     _setLoginState();
-    Navigator.push(context, MaterialPageRoute(
-        builder: (context) => HomePage(devotions: devotions, user: _user,)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => HomePage(
+              devotions: devotions,
+              user: _user,
+            )));
+  }
 
-//    print('NIH $asd');
-//    setState(() {
-////      print(devotions[0].id);
-//
-////      Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(devotions: devotions, user: _user,)));
-////      _upsertUser(_user);
-////      _getUser(id);
-//    });
+  @override
+  void onComplete(List<Devotion> devotions, int userId) async {
+    _goToHomePage(devotions, userId);
   }
 
   _upsertUser(User user) async {
     await db.upsertUser(_user);
     User asd = await db.getUser(1);
     int count = await db.getCount();
-    print("user: ${asd.toString()}");
-  }
-
-  Future _getUser(int id) async {
-//    _user = null;
-//    _user = await _userProvider.getUser(id);
-//    print(_user.toString());
   }
 
   @override
@@ -411,7 +395,9 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
 
   @override
   Widget build(BuildContext context) {
-
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     return Scaffold(
       body: new Stack(
         children: <Widget>[
@@ -427,16 +413,12 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
             child: new Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                new Padding(padding: const EdgeInsets.only(top: 30.0)),
                 TransparentButtonWithImage(
-                    'Connect with Facebook', 'images/fb_icon.png',
-                    Color(0xFF3B5998),
-                    Colors.white),
-                new Padding(padding: const EdgeInsets.only(top: 10.0)),
-                TransparentButtonWithImage(
-                    'Connect with Google', 'images/google_icon.png',
+                    'Connect with Google',
+                    'images/google_icon.png',
                     Colors.white,
-                    Colors.black87),
+                    Colors.black87,
+                    'Google'),
                 new Padding(padding: const EdgeInsets.only(bottom: 60.0)),
               ],
             ),
@@ -444,10 +426,5 @@ class _LandingPageState extends State<LandingPage> implements UserContract,
         ],
       ),
     );
-  }
-
-  @override
-  void onAuthStateChanged(AuthState state) {
-    if(state == AuthState.LOGGED_IN) _checkIsLogin();
   }
 }

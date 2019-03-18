@@ -1,17 +1,14 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'package:xml2json/xml2json.dart';
 
 import '../model/bible.dart';
 
 class ReadingBiblePage extends StatefulWidget {
   static const String routeName = '/reading_bible';
-  final String endpoint;
+  final Bible bible;
 
-  ReadingBiblePage({Key key, @required this.endpoint}) : super(key: key);
+  ReadingBiblePage({Key key, @required this.bible}) : super(key: key);
 
   @override
   _ReadingBiblePageState createState() => _ReadingBiblePageState();
@@ -19,55 +16,41 @@ class ReadingBiblePage extends StatefulWidget {
 
 class _ReadingBiblePageState extends State<ReadingBiblePage> {
   final Xml2Json xml2json = Xml2Json();
-
+  double titleSize = 24.0;
+  double childSize = 15.0;
 
   @override
   Widget build(BuildContext context) {
-    print(widget.endpoint);
-    return new Scaffold(
-      appBar: new AppBar(
-        centerTitle: true,
-        title: new Row(
-          children: <Widget>[
-//            new Icon(Icons.arrow_back),
-//            new Text('Bacaan untuk hari Jumat'),
-
-          ],
-        ),
-        backgroundColor: Colors.blueGrey,
-      ),
-      backgroundColor: Colors.black87,
-      body: new FutureBuilder<Bible>(
-        future: _getBible(),
-        builder: (BuildContext context, AsyncSnapshot<Bible> snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-              return new Text('None');
-            case ConnectionState.waiting:
-              return new Text('Waiting');
-            default:
-              if (snapshot.hasError)
-                return new Text('Error: ${snapshot.error}');
-              else
-                return new Column(
-                  children: <Widget>[_showBible(snapshot.data),],
-                );
-
-//                return new Padding(
-//                    padding: EdgeInsets.all(24.0),
-//                    child: new Column(
-//                      children: <Widget>[_showBible(snapshot.data)],
-//                    ));
-          }
-        },
-      ),
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+    return new GestureDetector(
+      onScaleUpdate: (ScaleUpdateDetails scaleDetails) {
+        setState(() {
+          titleSize = (titleSize * scaleDetails.scale);
+        });
+      },
+      child: new Scaffold(
+          appBar: new AppBar(
+            centerTitle: true,
+            title: new Row(
+              children: <Widget>[],
+            ),
+            backgroundColor: Colors.white24,
+          ),
+          backgroundColor: Colors.black87,
+          body: new Column(
+            children: <Widget>[
+              _showBible(widget.bible),
+            ],
+          )),
     );
   }
 
   Widget _whiteText(String text) {
     return new Text(
       text,
-      style: new TextStyle(color: Colors.white70, fontSize: 15.0),
+      style: new TextStyle(color: Colors.white70, fontSize: 17.0),
     );
   }
 
@@ -126,32 +109,20 @@ class _ReadingBiblePageState extends State<ReadingBiblePage> {
                       new Expanded(child: _whiteText(text))
                     ],
                   ),
-
-
                 ],
               );
             });
-//        widget = new ListView.builder(
-//            itemCount: verseList.length,
-//            itemBuilder: (BuildContext context, int index) {
-//              verse = verseList[index];
-//              text = '${verse.number}. ${verse.text}';
-//              return new Column(children: <Widget>[
-//                Text(text)
-//              ]);
-//            });
       }
     }
-
 
     return widget != null ? widget : new Container();
   }
 
   Widget _showTitle(Book book) {
-
     bool isNum = false;
     var indexOfSpace = book.title.indexOf(" ");
-    String title = book.title.substring(0, indexOfSpace) + " " + book.chapter.chap;
+    String title =
+        book.title.substring(0, indexOfSpace) + " " + book.chapter.chap;
     return new Text(
       title,
       style: new TextStyle(
@@ -163,62 +134,42 @@ class _ReadingBiblePageState extends State<ReadingBiblePage> {
     Widget widget;
     if (bible.bookList.isNotEmpty) {
       widget = new Expanded(
-          child: Scrollbar(child: ListView.builder(
-              padding: EdgeInsets.all(24.0),
-              itemCount: bible.bookList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return new Column(
-                  children: <Widget>[
-                    index != 0
-                        ? new Padding(padding: EdgeInsets.only(top: 30.0))
-                        : new Padding(padding: EdgeInsets.all(0.0)),
-                    _showTitle(bible.bookList[index]),
-                    new Padding(padding: EdgeInsets.only(top: 10.0)),
-                    _showVerses(bible.bookList[index].chapter.verses),
-                  ],
-                );
-              })));
+          child: Scrollbar(
+              child: ListView.builder(
+                  padding: EdgeInsets.all(titleSize),
+                  itemCount: bible.bookList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return new Column(
+                      children: <Widget>[
+                        index != 0
+                            ? new Padding(padding: EdgeInsets.only(top: 30.0))
+                            : new Padding(padding: EdgeInsets.all(0.0)),
+                        _showTitle(bible.bookList[index]),
+                        new Padding(padding: EdgeInsets.only(top: 10.0)),
+                        _showVerses(bible.bookList[index].chapter.verses),
+                      ],
+                    );
+                  })));
     } else if (bible.book != null) {
       widget = new Expanded(
-          child: Scrollbar(child: ListView.builder(
-              padding: EdgeInsets.all(24.0),
-              itemCount: 1,
-              itemBuilder: (BuildContext context, int index) {
-                return new Column(
-                  children: <Widget>[
-                    index != 0
-                        ? new Padding(padding: EdgeInsets.only(top: 30.0))
-                        : new Padding(padding: EdgeInsets.all(0.0)),
-                    _showTitle(bible.book),
-                    new Padding(padding: EdgeInsets.only(top: 10.0)),
-                    _showVerses(bible.book.chapter.verses),
-                  ],
-                );
-              })));
-
+          child: Scrollbar(
+              child: ListView.builder(
+                  padding: EdgeInsets.all(24.0),
+                  itemCount: 1,
+                  itemBuilder: (BuildContext context, int index) {
+                    return new Column(
+                      children: <Widget>[
+                        index != 0
+                            ? new Padding(padding: EdgeInsets.only(top: 30.0))
+                            : new Padding(padding: EdgeInsets.all(0.0)),
+                        _showTitle(bible.book),
+                        new Padding(padding: EdgeInsets.only(top: 10.0)),
+                        _showVerses(bible.book.chapter.verses),
+                      ],
+                    );
+                  })));
     }
 
     return widget != null ? widget : new Container();
-  }
-
-  Future<Bible> _getBible() async {
-//    var result = await http.get(
-//        'http://alkitab.sabda.org/api/passage.php?passage=Yoh+1:1;3:1-17;Mat+1:1-20');
-    var result = await http.get(
-        'http://alkitab.sabda.org/api/passage.php?passage=${widget.endpoint}');
-    if (result.body != null) {
-      xml2json.parse(result.body.toString());
-      String res = xml2json.toParker();
-      var profile = json.decode(res);
-
-      Autogenerated autogenerated = new Autogenerated.fromMap(profile);
-
-      print(profile);
-      return autogenerated.bible;
-    }
-
-    return null;
-
-//    Navigator.pop(context);
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import './rounded_app_bar.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+//import 'package:carousel_slider/carousel_slider.dart';
 import '../util/carousel.dart';
 
 class HomePageHeader extends StatefulWidget {

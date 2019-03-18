@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import './home_page_body.dart';
 import './home_page_header.dart';
 import './task_row.dart';
 import '../util/task.dart';
 import '../util/diagonal_clipper.dart';
+import '../util/animated_fab.dart';
 import '../model/user.dart';
 import '../model/devotion.dart';
 import '../presenter/devotion_presenter.dart';
@@ -25,11 +27,8 @@ class HomePage extends StatefulWidget {
 }
 
 
-class _HomePageState extends State<HomePage> with WidgetsBindingObserver implements DevotionContract  {
-  AppLifecycleState _lastLifecycleState;
+class _HomePageState extends State<HomePage> {
   double _imageHeight = 256.0;
-  ScrollController _scrollController = new ScrollController();
-  DevotionPresenter _devotionPresenter;
   int currentPageId = 11;
   int prevPageId = 0;
   int nextPageId = 1;
@@ -39,36 +38,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver impleme
 
   @override
   void initState() {
-    controller.addListener(() {
-      setState(() {
-        currentPageId = controller.page.toInt();
-        print(currentPageId);
-      });
-    });
-    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {
-      _lastLifecycleState = state;
-    });
+  Future<bool> _onWillPop() {
+    return exit();
   }
 
-
-  _HomePageState() {
-    _devotionPresenter = new DevotionPresenter(this);
+  static Future<void> exit() async {
+    await SystemChannels.platform.invokeMethod('SystemNavigator.pop');
   }
 
   Widget _getWidget() {
-    print('TESTTT ' + widget.devotions.toString());
     List<Devotion> january = widget.devotions.where((l) => l.id >= 368 && l.id < 399).toList();
     List<Devotion> february = widget.devotions.where((l) => l.id >= 399 && l.id < 427).toList();
     List<Devotion> march = widget.devotions.where((l) => l.id >= 427 && l.id < 458).toList();
@@ -82,27 +68,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver impleme
     List<Devotion> november = widget.devotions.where((l) => l.id >= 672 && l.id < 702).toList();
     List<Devotion> december = widget.devotions.where((l) => l.id >= 702 && l.id < 733).toList();
 
-//    User user = new User()
-//    _getDevotional();
-    return new Scaffold(
+    return new WillPopScope(
+        onWillPop: _onWillPop,
+    child: new Scaffold(
       backgroundColor: Colors.white,
       body: new Stack(
         children: <Widget>[
-//            _buildTopHeader(),
           _buildTimeline(),
           _buildImage(),
           new PageView(
             controller: controller,
             pageSnapping: true,
-            onPageChanged: (pageId) {
-              setState(() {
-                currentPageId = pageId;
-                if (currentPageId == 0) prevPageId = 11;
-                else prevPageId = currentPageId - 1;
-                if (currentPageId == 11) nextPageId = 0;
-                else nextPageId = currentPageId + 1;
-              });
-            },
             children: <Widget>[
               _buildBottomPart(january, 'Januari', 'Des', 'Feb'),
               _buildBottomPart(february, 'Februari', 'Jan', 'Mar'),
@@ -121,28 +97,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver impleme
               _buildBottomPart(december, 'Desember', 'Nov', 'Jan'),
             ],
           ),
-//            _buildBottomPart(),
-
-
-
-
-          //LANJUT DI SINI , BIKIN CARDVIEW / LISTVIEW BUAT DAFTAR RENUNGAN TIAP HARI
+//          _buildFab()
         ],
       ),
-
+    ),
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {
 //    if (_widget == null) {
+//      SystemChrome.setPreferredOrientations([
+//        DeviceOrientation.portraitUp,
+//      ]);
 //      _widget = _getWidget();
 //    }
     _widget = _getWidget();
-//    return Text('Last notification: $_notification');
-    if (_lastLifecycleState == null)
-      print('This widget has not observed any lifecycle changes.');
-    else print('The most recent lifecycle state this widget observed was: $_lastLifecycleState.');
+
     return _widget;
   }
 
@@ -244,11 +217,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver impleme
     return color;
   }
 
-  Future<Null> _getDevotional(User user) async {
-    _devotionPresenter.getDevotion(user);
-
-  }
-
   Widget _buildBottomPart(List<Devotion> devotions, String month,
       String prevMonth, String nextMonth) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -268,16 +236,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver impleme
   }
 
   Widget _buildTasksList(List<Devotion> devotions, String month) {
+    var lastCheck = devotions.lastWhere((i) => i.isFinished == true);
+    var firstUncheck = devotions.firstWhere((i) => i.isFinished == false);
+    var indexOfLast = devotions.indexOf(lastCheck);
+    var indexOfFirst = devotions.indexOf(firstUncheck);
+
+
     return new Expanded(
-//      child: ListView.builder(
-//        shrinkWrap: true,
-//          physics: ClampingScrollPhysics(),
-//          itemCount: widget.devotions.length,
-//          itemBuilder: (BuildContext context, int index) {
-//
-//          }),
       child: new ListView(
-        controller: _scrollController,
         children: devotions.map((devotion) => new TaskRow(devotion: devotion, color: _getColor(),
             month: month, userId: widget.user.id,)).toList(),
       ),
@@ -335,23 +301,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver impleme
         completed: true),
   ];
 
-  @override
-  void onDownloaded(List<Devotion> devotions) {
-    setState(() {
-      print("COMPLETE NEH");
-//      _upsertUser(_user);
-//      _getUser(id);
-    });
+  Widget _buildFab() {
+    return new Positioned(
+        top: _imageHeight - 100.0,
+        right: -40.0,
+        child: new AnimatedFab(
+//          onClick: _changeFilterState,
+        ));
   }
 
-  @override
-  void onError() {
-    setState(() {
-      print("ERROR NEH");
-//      _upsertUser(_user);
-//      _getUser(id);
-    });
-  }
+//  void _changeFilterState() {
+//    showOnlyCompleted = !showOnlyCompleted;
+//    tasks.where((task) => !task.completed).forEach((task) {
+//      if (showOnlyCompleted) {
+//        listModel.removeAt(listModel.indexOf(task));
+//      } else {
+//        listModel.insert(tasks.indexOf(task), task);
+//      }
+//    });
+//  }
 
   @override
   void onFinishRead(Map map) {
