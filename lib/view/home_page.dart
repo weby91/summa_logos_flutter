@@ -55,18 +55,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _getWidget() {
-    List<Devotion> january = widget.devotions.where((l) => l.id >= 368 && l.id < 399).toList();
-    List<Devotion> february = widget.devotions.where((l) => l.id >= 399 && l.id < 427).toList();
-    List<Devotion> march = widget.devotions.where((l) => l.id >= 427 && l.id < 458).toList();
-    List<Devotion> april = widget.devotions.where((l) => l.id >= 458 && l.id < 488).toList();
-    List<Devotion> may = widget.devotions.where((l) => l.id >= 488 && l.id < 519).toList();
-    List<Devotion> june = widget.devotions.where((l) => l.id >= 519 && l.id < 549).toList();
-    List<Devotion> july = widget.devotions.where((l) => l.id >= 549 && l.id < 580).toList();
-    List<Devotion> august = widget.devotions.where((l) => l.id >= 580 && l.id < 611).toList();
-    List<Devotion> september = widget.devotions.where((l) => l.id >= 611 && l.id < 641).toList();
-    List<Devotion> october = widget.devotions.where((l) => l.id >= 641 && l.id < 672).toList();
-    List<Devotion> november = widget.devotions.where((l) => l.id >= 672 && l.id < 702).toList();
-    List<Devotion> december = widget.devotions.where((l) => l.id >= 702 && l.id < 733).toList();
+    List<Devotion> january = widget.devotions.where((l) => l.day >= 1 && l.day < 31).toList();
+    List<Devotion> february = widget.devotions.where((l) => l.day >= 32 && l.day < 60).toList();
+    List<Devotion> march = widget.devotions.where((l) => l.day >= 61 && l.day < 91).toList();
+    List<Devotion> april = widget.devotions.where((l) => l.day >= 92 && l.day < 121).toList();
+    List<Devotion> may = widget.devotions.where((l) => l.day >= 122 && l.day < 152).toList();
+    List<Devotion> june = widget.devotions.where((l) => l.day >= 153 && l.day < 182).toList();
+    List<Devotion> july = widget.devotions.where((l) => l.day >= 183 && l.day < 213).toList();
+    List<Devotion> august = widget.devotions.where((l) => l.day >= 214 && l.day < 244).toList();
+    List<Devotion> september = widget.devotions.where((l) => l.day >= 245 && l.day < 274).toList();
+    List<Devotion> october = widget.devotions.where((l) => l.day >= 275 && l.day < 305).toList();
+    List<Devotion> november = widget.devotions.where((l) => l.day >= 306 && l.day < 335).toList();
+    List<Devotion> december = widget.devotions.where((l) => l.day >= 336 && l.day < 366).toList();
 
     return new WillPopScope(
         onWillPop: _onWillPop,
@@ -140,7 +140,7 @@ class _HomePageState extends State<HomePage> {
     return new ClipPath(
       clipper: new DiagonalClipper(),
       child: new Image.asset(
-        'images/rain.jpg',
+        'images/verse.jpg',
         fit: BoxFit.fitHeight,
         height: _imageHeight,
       ),
@@ -236,8 +236,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTasksList(List<Devotion> devotions, String month) {
-    var lastCheck = devotions.lastWhere((i) => i.isFinished == true);
-    var firstUncheck = devotions.firstWhere((i) => i.isFinished == false);
+    var lastCheck = devotions.lastWhere((i) => i.isFinished == true, orElse: () => null);
+    var firstUncheck = devotions.firstWhere((i) => i.isFinished == false, orElse: () => null);
     var indexOfLast = devotions.indexOf(lastCheck);
     var indexOfFirst = devotions.indexOf(firstUncheck);
 

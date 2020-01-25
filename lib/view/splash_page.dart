@@ -52,9 +52,14 @@ class _SplashPageState extends State<SplashPage> {
   Future<User> _checkIsLogin() async {
     var isLogin = await _isLogin();
     if (isLogin) {
-      var users = await db.getAllUsers();
-      if (users != null) {
-        return User.fromMap(users[0]);
+      var latestDevotionDate = await db.getLatestDevotionDate();
+      var latestYear = latestDevotionDate.split("-")[0].split("date:")[1].trim();
+      var now = DateTime.now();
+      if (latestYear == now.year.toString()) {
+        var users = await db.getAllUsers();
+        if (users != null) {
+          return User.fromMap(users[0]);
+        }
       }
     }
     return null;

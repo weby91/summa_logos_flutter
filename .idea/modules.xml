@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/summa_logos.iml" filepath="$PROJECT_DIR$/summa_logos.iml" />
-      <module fileurl="file://$PROJECT_DIR$/summa_logos_android.iml" filepath="$PROJECT_DIR$/summa_logos_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/summa_logos.iml" filepath="$PROJECT_DIR$/.idea/summa_logos.iml" />
     </modules>
   </component>
 </project>

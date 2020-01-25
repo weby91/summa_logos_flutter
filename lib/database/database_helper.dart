@@ -122,6 +122,12 @@ class DatabaseHelper {
     return result.toList();
   }
 
+  Future<String> getLatestDevotionDate() async {
+    var dbClient = await db;
+    var result = await dbClient.rawQuery("SELECT date FROM $tableDevotion ORDER BY ID DESC LIMIT 1");
+    return result.toString();
+  }
+
   Future<List> getAllUsers() async {
     var dbClient = await db;
     var result = await dbClient.rawQuery("SELECT * FROM $tableName");

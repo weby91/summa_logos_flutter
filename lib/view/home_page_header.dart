@@ -35,7 +35,7 @@ class _HomePageHeaderState extends State<HomePageHeader> with SingleTickerProvid
       images: [
         new NetworkImage('https://scontent-sea1-1.cdninstagram.com/vp/0e1e8b350a17ef318755b138a029306e/5CC91138/t51.2885-15/sh0.08/e35/p750x750/47020322_2275525582766294_2375382516748229639_n.jpg?_nc_ht=scontent-sea1-1.cdninstagram.com&ig_cache_key=MTk0MTExODk2NTMzNTI5MDMxMQ%3D%3D.2'),
 //        new AssetImage('images/walk_by_faith.jpg'),
-        new AssetImage('images/rain.jpg'),
+        new AssetImage('images/verse.jpg'),
         new AssetImage('images/walk_by_faith.jpg'),
         new AssetImage('images/walk_by_faith.jpg'),
       ],
