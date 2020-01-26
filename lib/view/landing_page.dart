@@ -364,7 +364,7 @@ class _LandingPageState extends State<LandingPage> implements UserContract {
     await db.deleteAllDevotions();
     _user.id = userId;
     await db.upsertUser(_user);
-    for (Devotion dev in devotions) await db.saveDevotionList(dev);
+    for (Devotion dev in devotions) db.saveDevotionList(dev);
     _setLoginState();
     Navigator.push(
         context,

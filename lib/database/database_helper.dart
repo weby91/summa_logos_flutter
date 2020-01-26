@@ -73,6 +73,8 @@ class DatabaseHelper {
     return ourDb;
   }
 
+
+
   // =============================== User ==============================
   Future<int> upsertUser(User user) async {
     var dbClient = await db;
@@ -113,13 +115,14 @@ class DatabaseHelper {
 
   Future<Null> saveDevotionList(Devotion devotion) async {
     var dbClient = await db;
-//    devotions.map((devotion) => dbClient.insert(tableDevotion, devotion.toMap()));
+    Batch batch = dbClient.batch();
+    batch.insert(tableDevotion, devotion.toMapDb());
 
-    var result = await dbClient.insert(tableDevotion, devotion.toMapDb());
+    var result = await batch.commit(noResult: true);
+//    var result = await dbClient.insert(tableDevotion, devotion.toMapDb());
 //    var result = await dbClient.rawInsert(
 //        'INSERT INTO $tableNote ($columnTitle, $columnDescription) VALUES (\'${note.title}\', \'${note.description}\')');
 
-//    return result;
   }
 
   Future<List> getAllDevotions() async {
