@@ -8,6 +8,7 @@ final String columnTotalShare = 'total_share';
 final String columTotalDiscussion = 'total_discussion';
 final String columnBookParam = 'book_param';
 final String columnIsFinished = 'is_finished';
+final String columnMonth = 'month';
 
 class Devotion {
   int _rowId;
@@ -23,6 +24,7 @@ class Devotion {
   int _totalDiscussion;
   String _bookParam;
   bool _isFinished;
+  int _month;
 
   Devotion(
       this._id,
@@ -34,7 +36,8 @@ class Devotion {
       this._totalShare,
       this._totalDiscussion,
       this._bookParam,
-      this._isFinished);
+      this._isFinished,
+      this._month);
 
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
@@ -51,6 +54,7 @@ class Devotion {
     if (rowId != null) {
       map["row_id"] = _rowId;
     }
+    map["month"] = _month;
     return map;
   }
 
@@ -69,6 +73,7 @@ class Devotion {
     if (rowId != null) {
       map["row_id"] = _rowId;
     }
+    map["month"] = _month;
     return map;
   }
 
@@ -83,7 +88,8 @@ class Devotion {
         _totalShare = map['total_share'],
         _totalDiscussion = map['total_discussion'],
         _bookParam = map['book_param'],
-        _isFinished = map['is_finished'];
+        _isFinished = map['is_finished'],
+        _month = map['month'];
 
   Devotion.fromMapDb(Map<String, dynamic> map)
       : _rowId = map['row_id'],
@@ -96,7 +102,8 @@ class Devotion {
         _totalShare = map['total_share'],
         _totalDiscussion = map['total_discussion'],
         _bookParam = map['book_param'],
-        _isFinished = map['is_finished'] == 1 ? true : false;
+        _isFinished = map['is_finished'] == 1 ? true : false,
+        _month = map['month'];
 
   @override
   String toString() {
@@ -111,7 +118,8 @@ class Devotion {
         '"total_share": "$_totalShare",'
         '"total_discussion": "$_totalDiscussion",'
         '"book_param": "$_bookParam",'
-        '"is_finished": "$_isFinished"'
+        '"is_finished": "$_isFinished",'
+        '"month": "$_month'
         '}';
   }
 
@@ -138,5 +146,7 @@ class Devotion {
   set isFinished(bool val) {
     _isFinished = val;
   }
+
+  int get month => _month;
 
 }
