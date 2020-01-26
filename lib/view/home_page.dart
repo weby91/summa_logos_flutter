@@ -55,18 +55,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _getWidget() {
-    List<Devotion> january = widget.devotions.where((l) => l.day >= 1 && l.day < 31).toList();
-    List<Devotion> february = widget.devotions.where((l) => l.day >= 32 && l.day < 60).toList();
-    List<Devotion> march = widget.devotions.where((l) => l.day >= 61 && l.day < 91).toList();
-    List<Devotion> april = widget.devotions.where((l) => l.day >= 92 && l.day < 121).toList();
-    List<Devotion> may = widget.devotions.where((l) => l.day >= 122 && l.day < 152).toList();
-    List<Devotion> june = widget.devotions.where((l) => l.day >= 153 && l.day < 182).toList();
-    List<Devotion> july = widget.devotions.where((l) => l.day >= 183 && l.day < 213).toList();
-    List<Devotion> august = widget.devotions.where((l) => l.day >= 214 && l.day < 244).toList();
-    List<Devotion> september = widget.devotions.where((l) => l.day >= 245 && l.day < 274).toList();
-    List<Devotion> october = widget.devotions.where((l) => l.day >= 275 && l.day < 305).toList();
-    List<Devotion> november = widget.devotions.where((l) => l.day >= 306 && l.day < 335).toList();
-    List<Devotion> december = widget.devotions.where((l) => l.day >= 336 && l.day < 366).toList();
+    List<Devotion> january = widget.devotions.where((l) => l.month == 1).toList();
+    List<Devotion> february = widget.devotions.where((l) => l.month == 2).toList();
+    List<Devotion> march = widget.devotions.where((l) => l.month == 3).toList();
+    List<Devotion> april = widget.devotions.where((l) => l.month == 4).toList();
+    List<Devotion> may = widget.devotions.where((l) => l.month == 5).toList();
+    List<Devotion> june = widget.devotions.where((l) => l.month == 6).toList();
+    List<Devotion> july = widget.devotions.where((l) => l.month == 7).toList();
+    List<Devotion> august = widget.devotions.where((l) => l.month == 8).toList();
+    List<Devotion> september = widget.devotions.where((l) => l.month == 9).toList();
+    List<Devotion> october = widget.devotions.where((l) => l.month == 10).toList();
+    List<Devotion> november = widget.devotions.where((l) => l.month == 11).toList();
+    List<Devotion> december = widget.devotions.where((l) => l.month == 12).toList();
 
     return new WillPopScope(
         onWillPop: _onWillPop,

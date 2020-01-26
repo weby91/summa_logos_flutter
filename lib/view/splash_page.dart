@@ -87,9 +87,11 @@ class _SplashPageState extends State<SplashPage> {
         navigationPage();
       } else {
         _getDevotions().then((devotions) {
-          Navigator.push(context, MaterialPageRoute(
-              builder: (context) =>
-                  HomePage(devotions: devotions, user: user,)));
+          if (devotions.first.month != null) {
+            Navigator.push(context, MaterialPageRoute(
+                builder: (context) =>
+                    HomePage(devotions: devotions, user: user,)));
+          } else navigationPage();
         });
       }
     });
