@@ -56,7 +56,7 @@ class DatabaseHelper {
       $columnWeekday TEXT, $columnDate TEXT,
       $columnBook TEXT, $columnTotalRead INTEGER,
       $columnTotalShare INTEGER, $columTotalDiscussion INTEGER,
-      $columnBookParam TEXT, $columnIsFinished INTEGER);
+      $columnBookParam TEXT, $columnIsFinished INTEGER, $columnMonth INTEGER);
   ''');
   }
 
@@ -134,7 +134,8 @@ class DatabaseHelper {
   Future<String> getLatestDevotionDate() async {
     var dbClient = await db;
     var result = await dbClient.rawQuery("SELECT date FROM $tableDevotion ORDER BY ID DESC LIMIT 1");
-    return result.toString();
+    if (result.isEmpty) return "";
+    else return new Devotion.fromMap(result.first).date;
   }
 
   Future<List> getAllUsers() async {

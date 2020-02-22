@@ -53,14 +53,20 @@ class _SplashPageState extends State<SplashPage> {
     var isLogin = await _isLogin();
     if (isLogin) {
       var latestDevotionDate = await db.getLatestDevotionDate();
-      var latestYear = latestDevotionDate.split("-")[0].split("date:")[1].trim();
-      var now = DateTime.now();
-      if (latestYear == now.year.toString()) {
-        var users = await db.getAllUsers();
-        if (users != null) {
-          return User.fromMap(users[0]);
+      if (latestDevotionDate != "") {
+        var latestYear = latestDevotionDate.split("-")[0].trim();
+        var now = DateTime.now();
+        if (latestYear == now.year.toString()) {
+          var users = await db.getAllUsers();
+          if (users != null) {
+            return User.fromMap(users[0]);
+          }
         }
       }
+//      var users = await db.getAllUsers();
+//      if (users != null) {
+//        return User.fromMap(users[0]);
+//      }
     }
     return null;
   }
@@ -87,10 +93,12 @@ class _SplashPageState extends State<SplashPage> {
         navigationPage();
       } else {
         _getDevotions().then((devotions) {
-          if (devotions.first.month != null) {
-            Navigator.push(context, MaterialPageRoute(
-                builder: (context) =>
-                    HomePage(devotions: devotions, user: user,)));
+          if (devotions.isNotEmpty) {
+            if (devotions.first.month != null) {
+              Navigator.push(context, MaterialPageRoute(
+                  builder: (context) =>
+                      HomePage(devotions: devotions, user: user,)));
+            } else navigationPage();
           } else navigationPage();
         });
       }
